@@ -1,75 +1,146 @@
 package com.example.blackandwhite;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+
 import org.opencv.android.OpenCVLoader;
-import org.opencv.android.Utils;
-import org.opencv.core.CvType;
-import org.opencv.core.Mat;
-import org.opencv.imgproc.Imgproc;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
+import org.opencv.core.Rect;
 
-public class MainActivity extends AppCompatActivity {
-    private static final int PICK_IMAGE = 1;
-    private ImageView originalImageView;
-    private ImageView filteredImageView;
-    private Button pickImageButton;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
-    private Bitmap originalBitmap;
-    private Bitmap filteredBitmap;
+//import com.
 
-    static {
-        if (!OpenCVLoader.initDebug()) {
-            // Handle initialization error
-        }
-    }
+public class MainActivity extends Activity {
+    private Button registrationButton;
+    private Button searchButton;
+
+    private static final int PICK_IMAGE_REQUEST = 1;
+
+    private ImageView imageView;
+    private Button selectImageButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        originalImageView = findViewById(R.id.originalImageView);
-        filteredImageView = findViewById(R.id.filteredImageView);
-        pickImageButton = findViewById(R.id.pickImageButton);
+        registrationButton = findViewById(R.id.registration_button);
+        searchButton = findViewById(R.id.search_button);
 
-        pickImageButton.setOnClickListener(new View.OnClickListener() {
+        registrationButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Open the image gallery to pick an image
-                Intent galleryIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                startActivityForResult(galleryIntent, PICK_IMAGE);
+                // Open RegistrationActivity
+                Intent intent = new Intent(MainActivity.this, RegistrationActivity.class);
+                startActivity(intent);
             }
         });
+
+        searchButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Open SearchActivity
+                Intent intent = new Intent(MainActivity.this, SearchActivity.class);
+                startActivity(intent);
+            }
+        });
+
+//        imageView = findViewById(R.id.imageView);
+//        selectImageButton = findViewById(R.id.selectImageButton);
+//
+//        selectImageButton.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                openGallery();
+//            }
+//        });
+    }
+
+    private void openGallery() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        startActivityForResult(intent, PICK_IMAGE_REQUEST);
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == PICK_IMAGE && resultCode == RESULT_OK && data != null) {
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             Uri imageUri = data.getData();
 
             try {
-                // Convert the selected image to a Bitmap and display it in the originalImageView
-                originalBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), imageUri);
-                originalImageView.setImageBitmap(originalBitmap);
-
-                // Convert the originalBitmap to a grayscale bitmap and display it in the filteredImageView
-                filteredBitmap = ImageUtils.convertToGrayscale(originalBitmap);
-                filteredImageView.setImageBitmap(filteredBitmap);
-            } catch (Exception e) {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getContentResolver(), imageUri);
+                detectAndDrawFaces(bitmap);
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
     }
 
+    private void detectAndDrawFaces(Bitmap bitmap) {
+        String trainModelFileName = "haarcascade_frontalface_default.xml";
+        List<Rect> faceRects = ImageUtils.detectFaces(bitmap, getResourceFilePath(trainModelFileName));
+
+        // Draw bounding boxes around the detected faces
+        Bitmap resultBitmap = bitmap.copy(Bitmap.Config.ARGB_8888, true);
+        Canvas canvas = new Canvas(resultBitmap);
+        Paint paint = new Paint();
+        paint.setColor(Color.RED);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(5);
+
+        for (Rect rect : faceRects) {
+            canvas.drawRect(rect.x, rect.y, rect.x + rect.width, rect.y + rect.height, paint);
+        }
+
+        // Display the image with bounding boxes
+        imageView.setImageBitmap(resultBitmap);
+    }
+
+    public String getResourceFilePath(String resourceName) {
+        int resourceId = R.raw.haarcascade_frontalface_default;
+
+        String filePath = null;
+        try {
+            InputStream inputStream = getResources().openRawResource(resourceId);
+            String fileName = resourceName; // Use the resource name as the file name
+            File outputFile = new File(getFilesDir(), fileName);
+            filePath = outputFile.getAbsolutePath();
+
+            // Copy the content of the InputStream to the output file
+            try (OutputStream os = new FileOutputStream(outputFile)) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) != -1) {
+                    os.write(buffer, 0, bytesRead);
+                }
+            }
+
+            inputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return filePath;
+    }
 
 }
