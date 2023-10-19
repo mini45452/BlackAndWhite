@@ -22,6 +22,13 @@ import android.widget.Toast;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.blackandwhite.api.client.ApiClient;
+import com.example.blackandwhite.api.dto.SearchRequest;
+import com.example.blackandwhite.api.dto.SearchResponse;
+import com.example.blackandwhite.api.model.SimilarityAndPersonDetail;
+import com.example.blackandwhite.api.services.SearchService;
+import com.example.blackandwhite.api.model.SearchModel;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,7 +46,11 @@ import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class SearchActivity extends AppCompatActivity {
 
@@ -124,82 +135,66 @@ public class SearchActivity extends AppCompatActivity {
                     namasList.clear();
                     // Call the method to send the POST request and process the response
                     sendPostRequest(tempFile, 10);
+                } else {
+                    Toast.makeText(getApplicationContext(), "Please select image", Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
 
-    @SuppressLint("StaticFieldLeak")
     private void sendPostRequest(final File imageFile, final int fetchLimit) {
-        new AsyncTask<Void, Void, Boolean>() {
+        Retrofit retrofit = ApiClient.getRetrofitInstance();
+
+        SearchService searchService = retrofit.create(SearchService.class);
+
+        SearchModel searchModel = new SearchModel(imageFile, fetchLimit);
+        SearchRequest searchRequest = new SearchRequest(searchModel);
+
+        Call<List<SearchResponse>> call = searchService.performSearch(searchRequest.getFilePart(), searchRequest.getFetchLimit());
+
+        call.enqueue(new Callback<List<SearchResponse>>() {
             @Override
-            protected Boolean doInBackground(Void... voids) {
-                try {
-                    // Modify the URL as needed
-                    String url = "https://web01.facereco.net:8000/dummy-query";
-                    OkHttpClient client = new OkHttpClient();
+            public void onResponse(Call<List<SearchResponse>> call, Response<List<SearchResponse>> response) {
+                if (response.isSuccessful()) {
+                    List<SearchResponse> searchResponse = response.body();
 
-                    RequestBody requestBody = new MultipartBody.Builder()
-                            .setType(MultipartBody.FORM)
-                            .addFormDataPart("file", imageFile.getName(), RequestBody.create(MediaType.parse("image/*"), imageFile))
-                            .addFormDataPart("fetch_limit", String.valueOf(fetchLimit)) // Include the fetch_limit parameter
-                            .build();
-
-                    Request request = new Request.Builder()
-                            .url(url)
-                            .post(requestBody)
-                            .build();
-
-                    try (Response response = client.newCall(request).execute()) {
-                        if (response.isSuccessful()) {
-                            String responseData = response.body().string();
-                            // Process the response as JSON
-                            JSONArray jsonArray = new JSONArray(responseData);
-
-                            // Process the top fetchLimit similar persons
-                            for (int i = 0; i < fetchLimit && i < jsonArray.length(); i++) {
-                                JSONObject person = jsonArray.getJSONObject(i);
-                                JSONObject personDetail = person.getJSONObject("personDetail");
-
-                                String nik = personDetail.getString("nik");
-                                String nama = personDetail.getString("nama");
-
-                                // Add the values to the arrays
-                                niksList.add(nik);
-                                namasList.add(nama);
-
-                                // Use 'nik' and 'nama' as needed
-                            }
-
-                            return true; // Indicate success
-                        } else {
-                            // Handle the case where the HTTP request is not successful
-                            // You can use a Handler to display an error message if needed
-                            return false; // Indicate failure
-                        }
+                    // Extract the data you want to pass to SearchResultActivity
+                    List<String> niks = new ArrayList<>();
+                    List<String> namas = new ArrayList<>();
+                    for (SearchResponse item : searchResponse) {
+                        // Extract nik and nama from searchResponse and add them to the lists
+                        niks.add(item.getPersonDetail().getNik());
+                        namas.add(item.getPersonDetail().getNama());
                     }
-                } catch (IOException | JSONException e) {
-                    e.printStackTrace();
-                    return false; // Indicate failure
-                }
-            }
 
-            @Override
-            protected void onPostExecute(Boolean success) {
-                if (success) {
-                    // Data retrieval and processing are complete
-                    // Proceed to the next activity
+                    // Create an Intent to start SearchResultActivity
                     Intent intent = new Intent(SearchActivity.this, SearchResultActivity.class);
-                    String[] niks = niksList.toArray(new String[0]);
-                    String[] namas = namasList.toArray(new String[0]);
-                    intent.putExtra("niks", niks);
-                    intent.putExtra("namas", namas);
+
+                    // Pass the data as extras to the intent
+                    intent.putStringArrayListExtra("niks", (ArrayList<String>) niks);
+                    intent.putStringArrayListExtra("namas", (ArrayList<String>) namas);
+
+                    // Start SearchResultActivity
                     startActivity(intent);
                 } else {
-                    // Handle the case where the network request or processing fails
+                    // Handle the error response
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorResponseJson = response.errorBody().string();
+
+                        }
+                    } catch (IOException e) {
+
+                    }
                 }
             }
-        }.execute();
+
+            @Override
+            public void onFailure(Call<List<SearchResponse>> call, Throwable t) {
+                int deasygg = 4;
+            }
+        });
+
     }
 
     private File createTempImageFile() {

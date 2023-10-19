@@ -1,9 +1,17 @@
 package com.example.blackandwhite;
 
+import com.example.blackandwhite.api.dto.RegistrationRequest;
+import com.example.blackandwhite.api.dto.RegistrationResponse;
+import com.example.blackandwhite.api.dto.RegistrationResponseError;
+import com.example.blackandwhite.api.model.RegistrationModel;
+import com.example.blackandwhite.api.client.ApiClient;
+import com.example.blackandwhite.api.services.RegistrationService;
+
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
@@ -19,13 +27,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.canhub.cropper.CropImage;
 import com.canhub.cropper.CropImageView;
+import com.google.gson.Gson;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import okhttp3.Response;
+//import okhttp3.Response;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -33,6 +42,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
 
 public class RegistrationActivity extends AppCompatActivity {
 
@@ -46,6 +60,8 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private String name; // Variable to store the name
     private String nik;  // Variable to store the NIK
+
+    private boolean isImageSet = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,36 +96,26 @@ public class RegistrationActivity extends AppCompatActivity {
         saveRegistrationBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (selfImage.getDrawable() == null) {
+                if (!isImageSet) {
                     // ImageView is empty, show a toast message
                     Toast.makeText(getApplicationContext(), "Please select a self image", Toast.LENGTH_SHORT).show();
                     return; // Return and don't proceed further
                 }
 
                 // Retrieve the user inputs and store them in variables
-                name = nameEditText.getText().toString();
-                nik = nikEditText.getText().toString();
-
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            String response = sendRegistrationData();
-
-                            // Handle the response here
-                            Intent intent = new Intent(RegistrationActivity.this, RegistrationResultActivity.class);
-                            intent.putExtra("result", response);
-
-                            startActivity(intent);
-                        } catch (IOException e) {
-                            Log.d("RegistrationResponse", "menggagal");
-                            e.printStackTrace();
-
-                            // Handle the exception if necessary
-                        }
-                    }
-                }).start();
-
+                try {
+                    name = nameEditText.getText().toString();
+                    nik = nikEditText.getText().toString();
+                    InputStream inputStream = imageViewToInputStream(selfImage);
+                    File imageFile = createImageFileFromInputStream(inputStream);
+                    RegistrationModel registrationModel = new RegistrationModel();
+                    registrationModel.setName(name);
+                    registrationModel.setNik(nik);
+                    registrationModel.setImage(imageFile);
+                    registerUserWithModel(registrationModel);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
         });
     }
@@ -128,6 +134,7 @@ public class RegistrationActivity extends AppCompatActivity {
                         // Use the cropped bitmap as needed
                         if (croppedBitmap != null) {
                             selfImage.setImageBitmap(croppedBitmap);
+                            isImageSet = true;
                         }
                     }
                 })
@@ -149,6 +156,7 @@ public class RegistrationActivity extends AppCompatActivity {
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
             selectedImageUri = data.getData();
             selfImage.setImageURI(selectedImageUri);
+            isImageSet = true;
         }
     }
 
@@ -176,59 +184,129 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     // Function to send registration data
-    private String sendRegistrationData() throws IOException {
-        String url = "https://web01.facereco.net:8000/dummy-reg";
-        String tempatLahir = "Beji";
-        String tanggalLahir = "2000-01-01";
-        String jenisKelamin = "Male";
-        String alamat = "Jl. Beji No. 43";
-
-        // Create a request body with multipart data
-//        InputStream inputStream = getContentResolver().openInputStream(selectedImageUri);
-        InputStream inputStream = imageViewToInputStream(selfImage);
-        File imageFile = createImageFileFromInputStream(inputStream);
-
-        RequestBody requestBody = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("file", imageFile.getName(),
-                        RequestBody.create(MediaType.parse("image/*"), imageFile))
-                .addFormDataPart("nik", nik)
-                .addFormDataPart("nama", name)
-                .addFormDataPart("tempatLahir", tempatLahir)
-                .addFormDataPart("tanggalLahir", tanggalLahir)
-                .addFormDataPart("jenisKelamin", jenisKelamin)
-                .addFormDataPart("alamat", alamat)
-                .build();
-
-        Request request = new Request.Builder()
-                .url(url)
-                .post(requestBody)
-                .build();
-
-        try (Response response = client.newCall(request).execute()) {
-            return response.message();
-//            if (response.isSuccessful()) {
-//                String responseBody = response.body().string();
-//                response.message();
-//                // Assuming you are in the RegistrationActivity
-//                return "OK";
-//                // Process the response as needed
-//                // ...
-//            } else {
-//                String deasyg = response.body().toString();
-//                return "FAIL";
+//    private String sendRegistrationData() throws IOException {
+//        String url = "https://web01.facereco.net:8000/dummy-reg";
+//        String tempatLahir = "Beji";
+//        String tanggalLahir = "2000-01-01";
+//        String jenisKelamin = "Male";
+//        String alamat = "Jl. Beji No. 43";
+//
+//        // Create a request body with multipart data
+//        InputStream inputStream = imageViewToInputStream(selfImage);
+//        File imageFile = createImageFileFromInputStream(inputStream);
+//
+//        RequestBody requestBody = new MultipartBody.Builder()
+//                .setType(MultipartBody.FORM)
+//                .addFormDataPart("file", imageFile.getName(),
+//                        RequestBody.create(MediaType.parse("image/*"), imageFile))
+//                .addFormDataPart("nik", nik)
+//                .addFormDataPart("nama", name)
+//                .addFormDataPart("tempatLahir", tempatLahir)
+//                .addFormDataPart("tanggalLahir", tanggalLahir)
+//                .addFormDataPart("jenisKelamin", jenisKelamin)
+//                .addFormDataPart("alamat", alamat)
+//                .build();
+//
+//        Request request = new Request.Builder()
+//                .url(url)
+//                .post(requestBody)
+//                .build();
+//
+//        try (Response response = client.newCall(request).execute()) {
+//            return response.message();
+////            if (response.isSuccessful()) {
+////                String responseBody = response.body().string();
+////                response.message();
+////                // Assuming you are in the RegistrationActivity
+////                return "OK";
+////                // Process the response as needed
+////                // ...
+////            } else {
+////                String deasyg = response.body().toString();
+////                return "FAIL";
+////            }
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        } finally {
+//            // Delete the image file, whether the request was successful or not
+//            if (imageFile.exists()) {
+//                imageFile.delete();
 //            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // Delete the image file, whether the request was successful or not
-            if (imageFile.exists()) {
-                imageFile.delete();
-            }
-        }
+//        }
+//
+//        return "aw";
+//    }
 
-        return "aw";
+    public void registerUserWithModel(RegistrationModel registrationModel) {
+        // Create a Retrofit instance using your ApiClient
+        Retrofit retrofit = ApiClient.getRetrofitInstance();
+
+        // Create the RegistrationService using the Retrofit instance
+        RegistrationService service = retrofit.create(RegistrationService.class);
+
+        // Construct RegistrationRequest from RegistrationModel
+        RegistrationRequest registrationRequest = new RegistrationRequest(registrationModel);
+
+        // Make the API call using Retrofit
+        Call<RegistrationResponse> call = service.registerUser(
+                registrationRequest.getNik(),
+                registrationRequest.getNama(),
+                registrationRequest.getTempatLahir(),
+                registrationRequest.getTanggalLahir(),
+                registrationRequest.getJenisKelamin(),
+                registrationRequest.getAlamat(),
+                registrationRequest.getImage()
+        );
+
+        call.enqueue(new Callback<RegistrationResponse>() {
+            @Override
+            public void onResponse(Call<RegistrationResponse> call, Response<RegistrationResponse> response) {
+                if (response.isSuccessful()) {
+                    RegistrationResponse registrationResponse = response.body();
+                    String nama = registrationResponse.getNama();
+                    String nik = registrationResponse.getNik();
+
+                    // Concatenate status, nama, and nik for success message
+                    String successMessage = "Nama: " + nama + "\nNIK: " + nik;
+
+                    // Create an intent to navigate to RegistrationResultActivity
+                    Intent intent = new Intent(RegistrationActivity.this, RegistrationResultActivity.class);
+                    intent.putExtra("isSuccess", true); // Indicate success
+                    intent.putExtra("message", successMessage);
+                    startActivity(intent);
+                } else {
+                    // Get the error response body as a JSON string
+                    try {
+                        if (response.errorBody() != null) {
+                            String errorResponseJson = response.errorBody().string();
+
+                            // Parse the error response JSON into the RegistrationResponseError object
+                            RegistrationResponseError registrationResponseError =
+                                    new Gson().fromJson(errorResponseJson, RegistrationResponseError.class);
+
+                            // Now you can access the error information
+                            int status = registrationResponseError.getStatus();
+                            String message = registrationResponseError.getMessage();
+
+                            // Create an intent to navigate to RegistrationResultActivity
+                            Intent intent = new Intent(RegistrationActivity.this, RegistrationResultActivity.class);
+                            intent.putExtra("isSuccess", false); // Indicate failure
+                            intent.putExtra("message", message);
+                            startActivity(intent);
+                        }
+                    } catch (IOException e) {
+                        // Handle JSON parsing or IO error
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<RegistrationResponse> call, Throwable t) {
+                // Handle network or other errors here
+            }
+        });
     }
+
 
     // Helper method to create a temporary image file from an input stream
     private File createImageFileFromInputStream(InputStream inputStream) throws IOException {

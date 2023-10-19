@@ -19,7 +19,23 @@ public class RegistrationResultActivity extends AppCompatActivity {
 
         // Display the result message in your activity
         TextView resultTextView = findViewById(R.id.resultTextView);
-        resultTextView.setText("Registration " + result);
+
+        // Check if the activity was started with an intent
+        Intent intent = getIntent();
+        if (intent != null) {
+            boolean isSuccess = intent.getBooleanExtra("isSuccess", false);
+            String message = intent.getStringExtra("message");
+
+            String resultMessage;
+            if (isSuccess) {
+                resultMessage = "Result successful\n" + message;
+            } else {
+                resultMessage = "Result failed\n" + message;
+            }
+
+            // Set the result message in the TextView
+            resultTextView.setText(resultMessage);
+        }
 
         Button backToHomeButton = findViewById(R.id.backToHomeButton);
         backToHomeButton.setOnClickListener(new View.OnClickListener() {
