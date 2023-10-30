@@ -43,6 +43,12 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Find the ImageView in your layout
+        ImageView vectorImageView = findViewById(R.id.vectorImageView);
+
+        // Set the vector drawable as the image source
+        vectorImageView.setImageResource(R.drawable.default_pfp);
+
         registrationButton = findViewById(R.id.registration_button);
         searchButton = findViewById(R.id.search_button);
 

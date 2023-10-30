@@ -2,8 +2,10 @@ package com.example.blackandwhite;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -19,15 +21,34 @@ public class SearchResultActivity extends Activity {
 
         LinearLayout linearLayout = findViewById(R.id.linearLayout);
         for (int i = 0; i < niks.size(); i++) {
-            // Create a TextView for each person's "nik" and "nama"
-            TextView textView = new TextView(this);
-            textView.setText("Person " + (i + 1) + "\n" +
-                    "NIK: " + niks.get(i) + "\n" +
-                    "Nama: " + namas.get(i) + "\n");
+            final int position = i;
 
-            // Add the TextView to the LinearLayout
-            linearLayout.addView(textView);
+            // Inflate the "person_thumbnail" layout for each section
+            View sectionLayout = getLayoutInflater().inflate(R.layout.person_thumbnail, null);
+
+            // Get the components within the "person_thumbnail" layout
+            TextView positionTextView = sectionLayout.findViewById(R.id.position);
+            TextView nikTextView = sectionLayout.findViewById(R.id.nik);
+            TextView namaTextView = sectionLayout.findViewById(R.id.nama);
+
+            // Set the data for positionTextView, nikTextView, and namaTextView
+            positionTextView.setText(String.valueOf(i + 1));
+            nikTextView.setText("NIK: " + niks.get(i));
+            namaTextView.setText("Nama: " + namas.get(i));
+
+            // Add the "person_thumbnail" layout to the parent LinearLayout
+            linearLayout.addView(sectionLayout);
+
+            // Set an OnClickListener for the sectionLayout
+            sectionLayout.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    // Action to perform when the sectionLayout is clicked
+                    String message = "Section " + (position + 1) + " is clicked";
+                    Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
+                }
+            });
         }
-
     }
 }
+
