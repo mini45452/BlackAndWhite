@@ -1,9 +1,11 @@
 package com.example.blackandwhite;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -59,7 +61,11 @@ public class SearchResultActivity extends Activity {
                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                 }
             });
+
         }
+        LayoutInflater inflater = getLayoutInflater();
+        View footerLayout = inflater.inflate(R.layout.footer_layout, null);
+        linearLayout.addView(footerLayout);
         backButton = findViewById(R.id.backButton);
         // Find the TextView for activity information
         activityInfo = findViewById(R.id.activityInfo);
@@ -74,6 +80,21 @@ public class SearchResultActivity extends Activity {
                 onBackPressed(); // This simulates the default back button behavior
             }
         });
+    }
+
+    public void goToMainActivity(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    public void goToSearchActivity(View view) {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
+    }
+
+    // Do nothing method for Stats and Profile
+    public void doNothing(View view) {
+        // Do nothing for Stats and Profile for now.
     }
 }
 

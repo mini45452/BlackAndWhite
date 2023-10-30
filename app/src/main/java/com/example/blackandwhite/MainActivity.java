@@ -152,4 +152,18 @@ public class MainActivity extends Activity {
         return filePath;
     }
 
+    public void goToMainActivity(View view) {
+        Intent intent = new Intent(this, MainActivity.class);
+        startActivity(intent);
+    }
+
+    public void goToSearchActivity(View view) {
+        Intent intent = new Intent(this, SearchActivity.class);
+        startActivity(intent);
+    }
+
+    // Do nothing method for Stats and Profile
+    public void doNothing(View view) {
+        // Do nothing for Stats and Profile for now.
+    }
 }
