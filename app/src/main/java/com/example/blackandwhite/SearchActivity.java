@@ -8,6 +8,7 @@ import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -63,6 +65,8 @@ public class SearchActivity extends AppCompatActivity {
     private List<String> namasList = new ArrayList<>();
 
     private ImageView imageView;
+    private TextView backButton;
+    private TextView activityInfo;
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -120,6 +124,7 @@ public class SearchActivity extends AppCompatActivity {
                     }
                 }
             }
+
         });
 
         sendRequestButton = findViewById(R.id.sendRequestButton);
@@ -138,6 +143,20 @@ public class SearchActivity extends AppCompatActivity {
                 } else {
                     Toast.makeText(getApplicationContext(), "Please select image", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        backButton = findViewById(R.id.backButton);
+        // Find the TextView for activity information
+        activityInfo = findViewById(R.id.activityInfo);
+
+        // Set the initial activity information text
+        activityInfo.setText("Search Page");
+
+        // Set an OnClickListener for the "backButton" TextView
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed(); // This simulates the default back button behavior
             }
         });
     }
@@ -167,15 +186,29 @@ public class SearchActivity extends AppCompatActivity {
                         namas.add(item.getPersonDetail().getNama());
                     }
 
-                    // Create an Intent to start SearchResultActivity
-                    Intent intent = new Intent(SearchActivity.this, SearchResultActivity.class);
+                    // Save the Bitmap to a temporary file
+                    try {
+                        Bitmap imageViewBitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
 
-                    // Pass the data as extras to the intent
-                    intent.putStringArrayListExtra("niks", (ArrayList<String>) niks);
-                    intent.putStringArrayListExtra("namas", (ArrayList<String>) namas);
+                        File imageFile = new File(getCacheDir(), "image.jpg");
+                        FileOutputStream out = new FileOutputStream(imageFile);
+                        imageViewBitmap.compress(Bitmap.CompressFormat.JPEG, 80, out); // Adjust quality as needed
+                        out.close();
 
-                    // Start SearchResultActivity
-                    startActivity(intent);
+                        // Create an Intent to start SearchResultActivity
+                        Intent intent = new Intent(SearchActivity.this, SearchResultActivity.class);
+
+                        // Pass the data as extras to the intent;
+                        Uri imageUri = Uri.fromFile(imageFile);
+                        intent.putExtra("imageUri", imageUri.toString());
+                        intent.putStringArrayListExtra("niks", (ArrayList<String>) niks);
+                        intent.putStringArrayListExtra("namas", (ArrayList<String>) namas);
+
+                        // Start SearchResultActivity
+                        startActivity(intent);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 } else {
                     // Handle the error response
                     try {

@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import org.opencv.android.OpenCVLoader;
 import org.opencv.core.Rect;
@@ -33,6 +34,9 @@ public class MainActivity extends Activity {
     private Button registrationButton;
     private Button searchButton;
 
+    private TextView backButton;
+    private TextView activityInfo;
+
     private static final int PICK_IMAGE_REQUEST = 1;
 
     private ImageView imageView;
@@ -42,12 +46,6 @@ public class MainActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Find the ImageView in your layout
-        ImageView vectorImageView = findViewById(R.id.vectorImageView);
-
-        // Set the vector drawable as the image source
-        vectorImageView.setImageResource(R.drawable.default_pfp);
 
         registrationButton = findViewById(R.id.registration_button);
         searchButton = findViewById(R.id.search_button);
@@ -70,15 +68,20 @@ public class MainActivity extends Activity {
             }
         });
 
-//        imageView = findViewById(R.id.imageView);
-//        selectImageButton = findViewById(R.id.selectImageButton);
-//
-//        selectImageButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                openGallery();
-//            }
-//        });
+        backButton = findViewById(R.id.backButton);
+        // Find the TextView for activity information
+        activityInfo = findViewById(R.id.activityInfo);
+
+        // Set the initial activity information text
+        activityInfo.setText("Main Page");
+
+        // Set an OnClickListener for the "backButton" TextView
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed(); // This simulates the default back button behavior
+            }
+        });
     }
 
     private void openGallery() {

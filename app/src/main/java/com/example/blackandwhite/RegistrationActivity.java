@@ -19,6 +19,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.Nullable;
@@ -60,6 +61,8 @@ public class RegistrationActivity extends AppCompatActivity {
 
     private String name; // Variable to store the name
     private String nik;  // Variable to store the NIK
+    private TextView backButton;
+    private TextView activityInfo;
 
     private boolean isImageSet = false;
 
@@ -116,6 +119,21 @@ public class RegistrationActivity extends AppCompatActivity {
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
+            }
+        });
+
+        backButton = findViewById(R.id.backButton);
+        // Find the TextView for activity information
+        activityInfo = findViewById(R.id.activityInfo);
+
+        // Set the initial activity information text
+        activityInfo.setText("Registration Page");
+
+        // Set an OnClickListener for the "backButton" TextView
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed(); // This simulates the default back button behavior
             }
         });
     }

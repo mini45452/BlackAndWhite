@@ -6,6 +6,8 @@
     android:orientation="vertical"
     android:padding="16dp">
 
+    <include layout="@layout/header_layout"/>
+
     <!-- ImageView for self-image -->
     <ImageView
         android:id="@+id/selfImage"

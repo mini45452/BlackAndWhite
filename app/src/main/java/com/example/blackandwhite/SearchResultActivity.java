@@ -1,8 +1,11 @@
 package com.example.blackandwhite;
 
 import android.app.Activity;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -10,6 +13,8 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 public class SearchResultActivity extends Activity {
+    private TextView backButton;
+    private TextView activityInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -18,6 +23,12 @@ public class SearchResultActivity extends Activity {
         // Get the "nik" and "nama" values passed from the previous activity
         ArrayList<String> niks = getIntent().getStringArrayListExtra("niks");
         ArrayList<String> namas = getIntent().getStringArrayListExtra("namas");
+
+        // In the destination activity
+        String imageUriString = getIntent().getStringExtra("imageUri");
+        Uri imageUri = Uri.parse(imageUriString);
+        ImageView imageView = findViewById(R.id.resultImageView);
+        imageView.setImageURI(imageUri);
 
         LinearLayout linearLayout = findViewById(R.id.linearLayout);
         for (int i = 0; i < niks.size(); i++) {
@@ -49,6 +60,20 @@ public class SearchResultActivity extends Activity {
                 }
             });
         }
+        backButton = findViewById(R.id.backButton);
+        // Find the TextView for activity information
+        activityInfo = findViewById(R.id.activityInfo);
+
+        // Set the initial activity information text
+        activityInfo.setText("Search Result Page");
+
+        // Set an OnClickListener for the "backButton" TextView
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onBackPressed(); // This simulates the default back button behavior
+            }
+        });
     }
 }
 

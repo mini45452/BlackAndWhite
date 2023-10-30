@@ -8,6 +8,8 @@
     android:padding="16dp"
     tools:context=".RegistrationResultActivity">
 
+    <include layout="@layout/header_layout"/>
+
     <TextView
         android:id="@+id/resultTextView"
         android:layout_width="wrap_content"

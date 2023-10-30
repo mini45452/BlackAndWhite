@@ -9,6 +9,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 public class RegistrationResultActivity extends AppCompatActivity {
+    private TextView backButton;
+    private TextView activityInfo;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -35,6 +37,21 @@ public class RegistrationResultActivity extends AppCompatActivity {
 
             // Set the result message in the TextView
             resultTextView.setText(resultMessage);
+
+            backButton = findViewById(R.id.backButton);
+            // Find the TextView for activity information
+            activityInfo = findViewById(R.id.activityInfo);
+
+            // Set the initial activity information text
+            activityInfo.setText("Registration Result Page");
+
+            // Set an OnClickListener for the "backButton" TextView
+            backButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    onBackPressed(); // This simulates the default back button behavior
+                }
+            });
         }
 
         Button backToHomeButton = findViewById(R.id.backToHomeButton);
