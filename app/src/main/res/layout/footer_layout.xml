@@ -1,0 +1,52 @@
+<!-- footer_layout.xml -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/cardview_dark_background"
+    android:orientation="horizontal">
+
+    <TextView
+        android:id="@+id/textViewHome"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Home"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:onClick="goToMainActivity" />
+
+    <TextView
+        android:id="@+id/textViewSearch"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Search"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:onClick="goToSearchActivity" />
+
+    <TextView
+        android:id="@+id/textViewStats"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Stats"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:onClick="doNothing" />
+
+    <TextView
+        android:id="@+id/textViewProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Profile"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:onClick="doNothing" />
+</LinearLayout>

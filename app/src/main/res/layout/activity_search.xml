@@ -43,5 +43,9 @@
         android:layout_below="@id/accessResourceButton"
         android:layout_marginTop="16dp" />
 
-
+    <include layout="@layout/footer_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:layout_below="@id/sendRequestButton" />
 </RelativeLayout>
