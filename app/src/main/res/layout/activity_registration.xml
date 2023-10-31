@@ -1,61 +1,116 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="16dp">
-
-    <include layout="@layout/header_layout"/>
-
-    <!-- ImageView for self-image -->
-    <ImageView
-        android:id="@+id/selfImage"
-        android:layout_width="200dp"
-        android:layout_height="200dp"
-        android:layout_gravity="center"
-        android:src="@drawable/placeholder_image" />
-
-    <!-- Button to select image from gallery -->
-    <Button
-        android:id="@+id/chooseImageBtn"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Choose Image" />
-
-    <!-- Button to initiate the cropping process -->
-    <Button
-        android:id="@+id/cropImageBtn"
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Crop Image" />
-
-    <!-- EditText for name -->
-    <EditText
-        android:id="@+id/nameEditText"
+    android:layout_height="match_parent">
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Name" />
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="16dp">
 
-    <!-- EditText for NIK -->
-    <EditText
-        android:id="@+id/nikEditText"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="NIK" />
+        <include layout="@layout/header_layout"/>
 
-    <!-- Save button to save the registration data -->
-    <Button
-        android:layout_width="200dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Save Registration"
-        android:id="@+id/saveRegistrationBtn" />
+        <!-- ImageView for self-image -->
+        <ImageView
+            android:id="@+id/selfImage"
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:layout_gravity="center"
+            android:src="@drawable/placeholder_image" />
 
-    <include layout="@layout/footer_layout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="24dp" />
-</LinearLayout>
+        <!-- Button to select image from gallery -->
+        <Button
+            android:id="@+id/chooseImageBtn"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Choose Image" />
+
+        <!-- Button to initiate the cropping process -->
+        <Button
+            android:id="@+id/cropImageBtn"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Crop Image" />
+
+        <!-- EditText for name -->
+        <EditText
+            android:id="@+id/nameEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Name" />
+
+        <!-- EditText for NIK -->
+        <EditText
+            android:id="@+id/nikEditText"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="NIK" />
+
+        <TextView
+            android:id="@+id/gender_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"
+            android:text="Gender"
+            android:textSize="18sp"/>
+
+        <Spinner
+            android:id="@+id/gender_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/gender_label"
+            android:layout_centerHorizontal="true"/>
+
+        <EditText
+            android:id="@+id/place_of_birth_edittext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:hint="Place of Birth (City)"
+            android:inputType="text"/>
+
+        <EditText
+            android:id="@+id/address_edittext"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:hint="Address (Detailed Address)"
+            android:inputType="textMultiLine"
+            android:lines="3"/>
+
+        <!-- Birthday Label -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Birthday"
+            android:textSize="18sp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="16dp"/>
+
+        <Button
+            android:id="@+id/date_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Select Date"/>
+
+        <!-- Save button to save the registration data -->
+        <Button
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="Save Registration"
+            android:id="@+id/saveRegistrationBtn" />
+
+        <include layout="@layout/footer_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" />
+    </LinearLayout>
+</ScrollView>

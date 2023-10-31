@@ -23,6 +23,7 @@ public class SearchResultActivity extends Activity {
         setContentView(R.layout.activity_search_result);
 
         // Get the "nik" and "nama" values passed from the previous activity
+        float[] similarities = getIntent().getFloatArrayExtra("similarities");
         ArrayList<String> niks = getIntent().getStringArrayListExtra("niks");
         ArrayList<String> namas = getIntent().getStringArrayListExtra("namas");
 
@@ -47,7 +48,7 @@ public class SearchResultActivity extends Activity {
             // Set the data for positionTextView, nikTextView, and namaTextView
             positionTextView.setText(String.valueOf(i + 1));
             nikTextView.setText("NIK: " + niks.get(i));
-            namaTextView.setText("Nama: " + namas.get(i));
+            namaTextView.setText("Nama: " + namas.get(i) + " (" + similarities[i] + ")");
 
             // Add the "person_thumbnail" layout to the parent LinearLayout
             linearLayout.addView(sectionLayout);
@@ -61,11 +62,12 @@ public class SearchResultActivity extends Activity {
                     Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
                 }
             });
-
         }
+
         LayoutInflater inflater = getLayoutInflater();
         View footerLayout = inflater.inflate(R.layout.footer_layout, null);
         linearLayout.addView(footerLayout);
+
         backButton = findViewById(R.id.backButton);
         // Find the TextView for activity information
         activityInfo = findViewById(R.id.activityInfo);

@@ -16,8 +16,11 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -60,6 +63,7 @@ public class SearchActivity extends AppCompatActivity {
     private Button accessResourceButton;
     private Button sendRequestButton;
     private Bitmap selectedImageBitmap;
+    private String fetchLimit;
 
     private List<String> niksList = new ArrayList<>();
     private List<String> namasList = new ArrayList<>();
@@ -67,6 +71,7 @@ public class SearchActivity extends AppCompatActivity {
     private ImageView imageView;
     private TextView backButton;
     private TextView activityInfo;
+    private Uri selectedImageUri;
 
     private static final int PICK_IMAGE_REQUEST = 1;
 
@@ -139,7 +144,7 @@ public class SearchActivity extends AppCompatActivity {
                     niksList.clear();
                     namasList.clear();
                     // Call the method to send the POST request and process the response
-                    sendPostRequest(tempFile, 10);
+                    sendPostRequest(tempFile, Integer.parseInt(fetchLimit));
                 } else {
                     Toast.makeText(getApplicationContext(), "Please select image", Toast.LENGTH_SHORT).show();
                 }
@@ -159,6 +164,25 @@ public class SearchActivity extends AppCompatActivity {
                 onBackPressed(); // This simulates the default back button behavior
             }
         });
+
+        Spinner spinner = findViewById(R.id.spinner);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.numbers, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Get the selected value
+                String selectedValue = parentView.getItemAtPosition(position).toString();
+                fetchLimit = selectedValue;
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Do nothing here
+            }
+        });
     }
 
     private void sendPostRequest(final File imageFile, final int fetchLimit) {
@@ -167,6 +191,7 @@ public class SearchActivity extends AppCompatActivity {
         SearchService searchService = retrofit.create(SearchService.class);
 
         SearchModel searchModel = new SearchModel(imageFile, fetchLimit);
+        searchModel.setFile(FileUtils.uriToFile(this, selectedImageUri));
         SearchRequest searchRequest = new SearchRequest(searchModel);
 
         Call<List<SearchResponse>> call = searchService.performSearch(searchRequest.getFilePart(), searchRequest.getFetchLimit());
@@ -180,11 +205,14 @@ public class SearchActivity extends AppCompatActivity {
                     // Extract the data you want to pass to SearchResultActivity
                     List<String> niks = new ArrayList<>();
                     List<String> namas = new ArrayList<>();
+                    List<Float> similarities = new ArrayList<>();
                     for (SearchResponse item : searchResponse) {
                         // Extract nik and nama from searchResponse and add them to the lists
+                        similarities.add(item.getSimilarity());
                         niks.add(item.getPersonDetail().getNik());
                         namas.add(item.getPersonDetail().getNama());
                     }
+
 
                     // Save the Bitmap to a temporary file
                     try {
@@ -200,6 +228,13 @@ public class SearchActivity extends AppCompatActivity {
 
                         // Pass the data as extras to the intent;
                         Uri imageUri = Uri.fromFile(imageFile);
+//                        intent.putExtra("fetchLimit", fetchLimit);
+                        // Convert the list to a float array
+                        float[] similarityArray = new float[similarities.size()];
+                        for (int i = 0; i < similarities.size(); i++) {
+                            similarityArray[i] = similarities.get(i);
+                        }
+                        intent.putExtra("similarities", similarityArray);
                         intent.putExtra("imageUri", imageUri.toString());
                         intent.putStringArrayListExtra("niks", (ArrayList<String>) niks);
                         intent.putStringArrayListExtra("namas", (ArrayList<String>) namas);
@@ -285,7 +320,7 @@ public class SearchActivity extends AppCompatActivity {
 
         if (requestCode == PICK_IMAGE_REQUEST && resultCode == Activity.RESULT_OK) {
             if (data != null) {
-                Uri selectedImageUri = data.getData();
+                selectedImageUri = data.getData();
                 try {
                     // Convert the selected image URI to a Bitmap
                     selectedImageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);

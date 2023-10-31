@@ -44,9 +44,25 @@
         android:layout_below="@id/accessResourceButton"
         android:layout_marginTop="16dp" />
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sendRequestButton"
+        android:text="Fetch Limit"
+        android:id="@+id/fetchLimitLabel"
+        />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fetchLimitLabel"
+        android:entries="@array/numbers"
+        />
+
     <include layout="@layout/footer_layout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="24dp"
-        android:layout_below="@id/sendRequestButton" />
+        android:layout_below="@id/spinner" />
 </RelativeLayout>

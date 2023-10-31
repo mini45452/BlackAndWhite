@@ -7,6 +7,7 @@ import com.example.blackandwhite.api.model.RegistrationModel;
 import com.example.blackandwhite.api.client.ApiClient;
 import com.example.blackandwhite.api.services.RegistrationService;
 
+import android.app.DatePickerDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -16,9 +17,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -43,6 +48,9 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -55,6 +63,7 @@ public class RegistrationActivity extends AppCompatActivity {
     private EditText nameEditText;
     private EditText nikEditText;
     private OkHttpClient client = new OkHttpClient();
+    private String selectedGender = "Male";
 
     private static final int PICK_IMAGE_REQUEST = 1;
     private Uri selectedImageUri = null;
@@ -63,6 +72,10 @@ public class RegistrationActivity extends AppCompatActivity {
     private String nik;  // Variable to store the NIK
     private TextView backButton;
     private TextView activityInfo;
+    private String pickedDate = "1970-01-01";
+    private Button dateButton;
+    private Calendar calendar;
+    private int year, month, day;
 
     private boolean isImageSet = false;
 
@@ -114,7 +127,16 @@ public class RegistrationActivity extends AppCompatActivity {
                     RegistrationModel registrationModel = new RegistrationModel();
                     registrationModel.setName(name);
                     registrationModel.setNik(nik);
+                    registrationModel.setJenisKelamin(selectedGender);
+                    EditText tempatLahirEditText = findViewById(R.id.place_of_birth_edittext);
+                    String tempatLahirString = tempatLahirEditText.getText().toString();
+                    registrationModel.setTempatLahir(tempatLahirString);
+                    EditText alamatEditText = findViewById(R.id.address_edittext);
+                    String alamatString = alamatEditText.getText().toString();
+                    registrationModel.setAlamat(alamatString);
                     registrationModel.setImage(imageFile);
+                    registrationModel.setTanggalLahir(pickedDate);
+                    registrationModel.setImage(FileUtils.uriToFile(RegistrationActivity.this, selectedImageUri));
                     registerUserWithModel(registrationModel);
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -134,6 +156,51 @@ public class RegistrationActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 onBackPressed(); // This simulates the default back button behavior
+            }
+        });
+
+        // Initialize the Spinner
+        Spinner genderSpinner = findViewById(R.id.gender_spinner);
+
+        // Create an ArrayAdapter to populate the Spinner with options
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.gender_options, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        // Set the ArrayAdapter on the Spinner
+        genderSpinner.setAdapter(adapter);
+
+        // Set an item selection listener for the Spinner
+        genderSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                selectedGender = (String) parentView.getItemAtPosition(position);
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Do nothing here
+            }
+        });
+
+        dateButton = findViewById(R.id.date_button);
+        calendar = Calendar.getInstance();
+        year = calendar.get(Calendar.YEAR);
+        month = calendar.get(Calendar.MONTH);
+        day = calendar.get(Calendar.DAY_OF_MONTH);
+
+        dateButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                DatePickerDialog datePickerDialog = new DatePickerDialog(RegistrationActivity.this,
+                        (view1, year, month, dayOfMonth) -> {
+                            // The selected date is returned here
+                            String selectedDate = dayOfMonth + "-" + (month + 1) + "-" + year;
+                            dateButton.setText(selectedDate);
+                            calendar.set(year, month + 1, dayOfMonth);
+                            SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy");
+                            pickedDate = sdf.format(calendar.getTime());
+                        }, year, month, day);
+                datePickerDialog.show();
             }
         });
     }
@@ -200,60 +267,6 @@ public class RegistrationActivity extends AppCompatActivity {
 
         return null;
     }
-
-    // Function to send registration data
-//    private String sendRegistrationData() throws IOException {
-//        String url = "https://web01.facereco.net:8000/dummy-reg";
-//        String tempatLahir = "Beji";
-//        String tanggalLahir = "2000-01-01";
-//        String jenisKelamin = "Male";
-//        String alamat = "Jl. Beji No. 43";
-//
-//        // Create a request body with multipart data
-//        InputStream inputStream = imageViewToInputStream(selfImage);
-//        File imageFile = createImageFileFromInputStream(inputStream);
-//
-//        RequestBody requestBody = new MultipartBody.Builder()
-//                .setType(MultipartBody.FORM)
-//                .addFormDataPart("file", imageFile.getName(),
-//                        RequestBody.create(MediaType.parse("image/*"), imageFile))
-//                .addFormDataPart("nik", nik)
-//                .addFormDataPart("nama", name)
-//                .addFormDataPart("tempatLahir", tempatLahir)
-//                .addFormDataPart("tanggalLahir", tanggalLahir)
-//                .addFormDataPart("jenisKelamin", jenisKelamin)
-//                .addFormDataPart("alamat", alamat)
-//                .build();
-//
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .post(requestBody)
-//                .build();
-//
-//        try (Response response = client.newCall(request).execute()) {
-//            return response.message();
-////            if (response.isSuccessful()) {
-////                String responseBody = response.body().string();
-////                response.message();
-////                // Assuming you are in the RegistrationActivity
-////                return "OK";
-////                // Process the response as needed
-////                // ...
-////            } else {
-////                String deasyg = response.body().toString();
-////                return "FAIL";
-////            }
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } finally {
-//            // Delete the image file, whether the request was successful or not
-//            if (imageFile.exists()) {
-//                imageFile.delete();
-//            }
-//        }
-//
-//        return "aw";
-//    }
 
     public void registerUserWithModel(RegistrationModel registrationModel) {
         // Create a Retrofit instance using your ApiClient
@@ -324,7 +337,6 @@ public class RegistrationActivity extends AppCompatActivity {
             }
         });
     }
-
 
     // Helper method to create a temporary image file from an input stream
     private File createImageFileFromInputStream(InputStream inputStream) throws IOException {
